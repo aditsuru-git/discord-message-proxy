@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
+import path from "path";
 
-dotenv.config();
+dotenv.config({
+  path: path.resolve(__dirname, "../../.env"),
+});
 
 interface Config {
   port: number;
@@ -17,5 +20,7 @@ const config: Config = {
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
   discordBotToken: process.env.DISCORD_BOT_TOKEN || null,
 };
+
+console.log(config.clientDist);
 
 export default config;

@@ -13,7 +13,7 @@ export const createBot = () => {
     ],
   });
 
-  client.on("ready", () => {
+  client.on("clientReady", () => {
     console.log(`Logged in as ${client.user?.tag}!`);
   });
 
@@ -37,8 +37,12 @@ export const setupDashboardHandlers = (client: Client, io: Server) => {
     console.log("Dashboard connected:", socket.id);
 
     // Handle dashboard requests
-    socket.on("fetchChannels", handlers.handleFetchChannels(client));
-    socket.on("fetchMessages", handlers.handleFetchMessages(client));
+    socket.on("fetchChannels", () =>
+      handlers.handleFetchChannels(client)(socket),
+    );
+    socket.on("fetchMessages", (payload) =>
+      handlers.handleFetchMessages(client)(socket, payload),
+    );
 
     // Handle frontend requests
     socket.on("addReaction", (payload) =>
