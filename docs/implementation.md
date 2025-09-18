@@ -25,8 +25,6 @@ This document outlines the Socket.IO events and data structures required to buil
   socket.emit("fetchGuilds");
   ```
 
-````
-
 #### `fetchChannels`
 
 - **Description:** Requests a list of all text channels for a specified guild.
@@ -201,7 +199,7 @@ The format for a simplified message object, used in the `messagesFetched` event.
 ```typescript
 interface SimpleMessage {
 	id: string; // The message ID
-    channelId: string; // The ID of the channel this message belongs to
+	channelId: string; // The ID of the channel this message belongs to
 	content: string; // The message content
 	author: {
 		// Details of the message author
@@ -232,5 +230,3 @@ interface SimpleMessage {
 - **`messageUpdated` Payload:** An object with `id`, `channelId`, `content`, `editedTimestamp`, and `author` information.
 - **`messageDeleted` Payload:** An object with `id`, `channelId`, and `guildId`.
 - **`reactionAdded` / `reactionRemoved` Payload:** An object with `messageId`, `channelId`, `emoji` details, `user...`
-
-````
