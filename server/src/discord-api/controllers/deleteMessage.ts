@@ -31,7 +31,6 @@ export const handleDeleteMessage = (client: Client) => {
         return;
       }
 
-      // 📝 Problem 1 Fix: Only allow deletion of messages sent by the bot.
       if (message.author.id !== client.user?.id) {
         socket.emit(
           "deleteMessageError",

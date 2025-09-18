@@ -8,7 +8,6 @@ import {
 	removeReactionFromMessage,
 } from "../store/features/messagesSlice";
 
-// IMPORTANT: Replace with your actual backend URL in a .env file
 const URL = import.meta.env.REACT_APP_SOCKET_URL || "http://localhost:3000";
 
 export const socket = io(URL, {
@@ -41,7 +40,6 @@ export function initSocket() {
 		store.dispatch(removeMessage({ id: payload.id }));
 	});
 
-	// 📝 Problem 2 Fix: Listen for reactions, which will be emitted by Discord client events
 	socket.on("reactionAdded", (payload) => {
 		store.dispatch(addReactionToMessage(payload));
 	});

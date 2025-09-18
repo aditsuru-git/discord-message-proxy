@@ -32,7 +32,6 @@ export const handleRemoveReaction = (client: Client) => {
         return;
       }
 
-      // 📝 Problem 1 Fix: Only allow removing reactions added by the bot.
       const reaction = message.reactions.cache.get(emoji);
       if (reaction) {
         const botReacted = reaction.users.cache.has(client.user?.id!);

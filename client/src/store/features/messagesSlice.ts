@@ -42,6 +42,7 @@ interface MessagesState {
 	botId: string | null;
 	status: "idle" | "loading" | "succeeded" | "failed";
 	error: string | null;
+	currentChannelId: string | null;
 }
 
 const initialState: MessagesState = {
@@ -49,6 +50,7 @@ const initialState: MessagesState = {
 	botId: null,
 	status: "idle",
 	error: null,
+	currentChannelId: null,
 };
 
 export const fetchMessages = createAsyncThunk("messages/fetchMessages", async (channelId: string, { dispatch }) => {
@@ -74,8 +76,12 @@ const messagesSlice = createSlice({
 			state.botId = action.payload;
 		},
 		addMessage(state, action: PayloadAction<Message>) {
-			if (!state.messages.find((m) => m.id === action.payload.id)) {
-				state.messages.push(action.payload);
+			const incomingMessage = action.payload;
+
+			if (incomingMessage.channelId === state.currentChannelId) {
+				if (!state.messages.find((m) => m.id === incomingMessage.id)) {
+					state.messages.push(incomingMessage);
+				}
 			}
 		},
 		removeMessage(state, action: PayloadAction<{ id: string }>) {
@@ -140,9 +146,10 @@ const messagesSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
-			.addCase(fetchMessages.pending, (state) => {
+			.addCase(fetchMessages.pending, (state, action) => {
 				state.status = "loading";
 				state.messages = [];
+				state.currentChannelId = action.meta.arg;
 			})
 			.addCase(fetchMessages.fulfilled, (state, action) => {
 				state.status = "succeeded";

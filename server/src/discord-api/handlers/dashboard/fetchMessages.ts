@@ -20,6 +20,7 @@ interface ReplyInfo {
 
 export interface SimpleMessage {
   id: string;
+  channelId: string;
   content: string;
   author: {
     id: string;
@@ -106,6 +107,7 @@ export const handleFetchMessages = (client: Client) => {
             reactions,
             attachments,
             replyTo,
+            channelId: msg.channel.id,
           };
         }),
       );

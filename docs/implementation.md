@@ -201,6 +201,7 @@ The format for a simplified message object, used in the `messagesFetched` event.
 ```typescript
 interface SimpleMessage {
 	id: string; // The message ID
+    channelId: string; // The ID of the channel this message belongs to
 	content: string; // The message content
 	author: {
 		// Details of the message author
