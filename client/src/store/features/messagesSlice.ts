@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/tool
 import { socket } from "../../api/socket";
 import { type RootState } from "../index";
 
-// Define interfaces for our state
 interface Author {
 	id: string;
 	username: string;
@@ -17,6 +16,16 @@ interface Reaction {
 	botReacted: boolean;
 }
 
+interface ReplyInfo {
+	id: string;
+	content: string;
+	author: {
+		id: string;
+		username: string;
+		avatar: string | null;
+	};
+}
+
 interface Message {
 	id: string;
 	channelId: string;
@@ -25,6 +34,7 @@ interface Message {
 	timestamp: number;
 	editedTimestamp: number | null;
 	reactions: Reaction[];
+	replyTo: ReplyInfo | null;
 }
 
 interface MessagesState {
@@ -41,13 +51,12 @@ const initialState: MessagesState = {
 	error: null,
 };
 
-// Async thunk to fetch messages
 export const fetchMessages = createAsyncThunk("messages/fetchMessages", async (channelId: string, { dispatch }) => {
 	return new Promise<{ messages: Message[]; botId: string }>((resolve, reject) => {
 		socket.emit("fetchMessages", { channelId });
 
 		socket.on("messagesFetched", (data: { messages: Message[]; botId: string }) => {
-			dispatch(setBotUserId(data.botId)); // Set botId from the same fetch
+			dispatch(setBotUserId(data.botId));
 			resolve(data);
 		});
 
@@ -65,7 +74,6 @@ const messagesSlice = createSlice({
 			state.botId = action.payload;
 		},
 		addMessage(state, action: PayloadAction<Message>) {
-			// Avoid duplicates on re-connect
 			if (!state.messages.find((m) => m.id === action.payload.id)) {
 				state.messages.push(action.payload);
 			}
@@ -139,7 +147,7 @@ const messagesSlice = createSlice({
 			.addCase(fetchMessages.fulfilled, (state, action) => {
 				state.status = "succeeded";
 				state.messages = action.payload.messages;
-				state.botId = action.payload.botId; // Set botId here too
+				state.botId = action.payload.botId;
 			})
 			.addCase(fetchMessages.rejected, (state, action) => {
 				state.status = "failed";

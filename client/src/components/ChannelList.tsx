@@ -62,10 +62,6 @@ function ChannelList() {
 					))}
 				</div>
 			</div>
-
-			<div className="h-14 bg-slate-900 px-2 flex items-center justify-between border-t border-slate-700">
-				{/* User Info Section... */}
-			</div>
 		</div>
 	);
 }

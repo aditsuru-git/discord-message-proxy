@@ -8,6 +8,16 @@ interface SimpleReaction {
   users: string[];
 }
 
+interface ReplyInfo {
+  id: string;
+  content: string;
+  author: {
+    id: string;
+    username: string;
+    avatar: string | null;
+  };
+}
+
 export interface SimpleMessage {
   id: string;
   content: string;
@@ -21,6 +31,7 @@ export interface SimpleMessage {
   editedTimestamp: number | null;
   reactions: SimpleReaction[];
   attachments: { url: string; name: string; size: number }[];
+  replyTo: ReplyInfo | null;
 }
 
 export const handleFetchMessages = (client: Client) => {
@@ -44,14 +55,14 @@ export const handleFetchMessages = (client: Client) => {
 
       const messages = await channel.messages.fetch({ limit: 50 });
 
-      const formattedMessages: SimpleMessage[] = messages
-        .map((msg) => {
+      const formattedMessages: SimpleMessage[] = await Promise.all(
+        messages.map(async (msg) => {
           const reactions: SimpleReaction[] = msg.reactions.cache.map(
             (reaction: MessageReaction) => ({
               emoji: reaction.emoji.name || "",
               count: reaction.count || 0,
               botReacted: reaction.users.cache.has(client.user!.id),
-              users: reaction.users.cache.map((u) => u.id), // Add this line
+              users: reaction.users.cache.map((u) => u.id),
             }),
           );
 
@@ -60,6 +71,26 @@ export const handleFetchMessages = (client: Client) => {
             name: attachment.name || "",
             size: attachment.size,
           }));
+
+          let replyTo: ReplyInfo | null = null;
+          if (msg.reference && msg.reference.messageId) {
+            try {
+              const referencedMessage = await channel.messages.fetch(
+                msg.reference.messageId,
+              );
+              replyTo = {
+                id: referencedMessage.id,
+                content: referencedMessage.content,
+                author: {
+                  id: referencedMessage.author.id,
+                  username: referencedMessage.author.username,
+                  avatar: referencedMessage.author.avatarURL({ size: 64 }),
+                },
+              };
+            } catch {
+              replyTo = null; // Message was deleted or is inaccessible
+            }
+          }
 
           return {
             id: msg.id,
@@ -74,13 +105,14 @@ export const handleFetchMessages = (client: Client) => {
             editedTimestamp: msg.editedTimestamp,
             reactions,
             attachments,
+            replyTo,
           };
-        })
-        .reverse();
+        }),
+      );
 
       socket.emit("messagesFetched", {
         botId: client.user?.id,
-        messages: formattedMessages,
+        messages: formattedMessages.reverse(),
       });
     } catch (error) {
       console.error(

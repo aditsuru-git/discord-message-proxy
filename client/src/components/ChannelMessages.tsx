@@ -3,11 +3,22 @@ import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import type { AppDispatch } from "../store";
 import { fetchMessages, selectAllMessages, selectMessagesStatus, selectBotId } from "../store/features/messagesSlice";
+import { selectAllChannels } from "../store/features/channelsSlice";
 import { socket } from "../api/socket";
 import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { MessageSquareReply, SmilePlus, Pencil, Trash2 } from "lucide-react";
+import { MessageSquareReply, SmilePlus, Pencil, Trash2, SendHorizontal } from "lucide-react";
+
+interface ReplyInfo {
+	id: string;
+	content: string;
+	author: {
+		id: string;
+		username: string;
+		avatar: string | null;
+	};
+}
 
 interface SimpleMessage {
 	id: string;
@@ -25,9 +36,30 @@ interface SimpleMessage {
 		count: number;
 		users?: string[];
 	}[];
+	replyTo: ReplyInfo | null;
 }
 
-const MessageInput = ({ channelId, replyingTo, setReplyingTo }: any) => {
+const ReplyPreview = ({ replyTo }: { replyTo: ReplyInfo }) => {
+	const userAvatarUrl = replyTo.author?.avatar || `https://cdn.discordapp.com/embed/avatars/0.png`;
+
+	return (
+		<div className="relative flex items-center text-sm text-slate-400 mb-1.5 ml-4">
+			<div className="absolute bottom-0 left-[-22px] w-8 h-4 border-l-2 border-b-2 border-slate-600 rounded-bl-md"></div>
+			<img src={userAvatarUrl} alt={replyTo.author?.username} className="w-5 h-5 rounded-full mr-2" />
+			<span className="font-semibold text-slate-300 mr-2">{replyTo.author?.username || "Unknown User"}</span>
+			<p className="truncate opacity-80">{replyTo.content}</p>
+		</div>
+	);
+};
+
+interface MessageInputProps {
+	channelId: string | undefined;
+	replyingTo: SimpleMessage | null;
+	setReplyingTo: (message: SimpleMessage | null) => void;
+	currentChannel: { id: string; name: string } | undefined;
+}
+
+const MessageInput = ({ channelId, replyingTo, setReplyingTo, currentChannel }: MessageInputProps) => {
 	const [messageText, setMessageText] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -53,39 +85,47 @@ const MessageInput = ({ channelId, replyingTo, setReplyingTo }: any) => {
 		setMessageText("");
 	};
 
+	useEffect(() => {
+		if (replyingTo) {
+			textareaRef.current?.focus();
+		}
+	}, [replyingTo]);
+
 	return (
 		<div className="p-4 border-t border-slate-600 bg-slate-700">
-			{replyingTo && (
-				<div className="relative p-2 mb-2 bg-slate-600 border border-slate-500 rounded-lg">
-					<div className="text-sm text-slate-400">Replying to **{replyingTo.author.username}**</div>
-					<div className="text-sm truncate">{replyingTo.content}</div>
+			{replyingTo && replyingTo.author && (
+				<div className="relative p-2 mb-2 bg-slate-600 rounded-lg">
+					<div className="text-sm text-slate-300">
+						Replying to <span className="font-semibold">{replyingTo.author.username}</span>
+					</div>
 					<button
 						onClick={() => setReplyingTo(null)}
-						className="absolute top-2 right-2 text-slate-400 hover:text-white"
+						className="absolute top-1 right-1 p-1 text-slate-400 hover:text-white hover:bg-slate-500 rounded"
 					>
-						&times;
+						<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+						</svg>
 					</button>
 				</div>
 			)}
-			<div className={`bg-slate-600 border border-slate-500 focus-within:border-blue-500 transition-colors rounded-lg`}>
+			<div className="relative bg-slate-600 border border-slate-500 focus-within:border-blue-500 transition-colors rounded-lg">
 				<textarea
 					ref={textareaRef}
 					value={messageText}
 					onChange={(e) => setMessageText(e.target.value)}
 					onKeyPress={handleKeyPress}
-					placeholder={`Message #${channelId || "general"}`}
-					className="w-full bg-transparent text-white placeholder-slate-400 p-3 pr-20 resize-none focus:outline-none min-h-[44px] max-h-32"
+					placeholder={`Message #${currentChannel?.name || channelId || "general"}`}
+					className="w-full bg-transparent text-white placeholder-slate-400 p-3 pr-12 resize-none focus:outline-none min-h-[44px] max-h-32"
 					rows={1}
 				/>
 				<div className="absolute right-3 bottom-2.5">
 					<button
 						type="button"
-						className="p-1 hover:bg-slate-500 rounded transition-colors cursor-pointer"
+						className="p-1 text-slate-400 hover:text-white disabled:text-slate-600 disabled:cursor-not-allowed transition-colors"
 						onClick={handleSendMessage}
+						disabled={!messageText.trim()}
 					>
-						<svg className="w-5 h-5 text-slate-400 hover:text-white" fill="currentColor" viewBox="0 0 20 20">
-							<path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 00.957 1.444h14a1 1 0 00.957-1.444l-7-14z" />
-						</svg>
+						<SendHorizontal className="w-5 h-5" />
 					</button>
 				</div>
 			</div>
@@ -116,6 +156,9 @@ function ChannelMessages() {
 	const messages = useSelector(selectAllMessages);
 	const messagesStatus = useSelector(selectMessagesStatus);
 	const botId = useSelector(selectBotId);
+	const channels = useSelector(selectAllChannels);
+	const currentChannel = channels.find((c) => c.id === channelId);
+
 	const [replyingTo, setReplyingTo] = useState<SimpleMessage | null>(null);
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 	const [pickerMessageId, setPickerMessageId] = useState<string | null>(null);
@@ -183,12 +226,13 @@ function ChannelMessages() {
 	return (
 		<div className="flex flex-col h-screen">
 			<div className="h-12 px-4 flex items-center justify-between border-b border-slate-600 shadow-sm bg-slate-800">
-				<h2 className="font-semibold text-white">
-					#{messagesStatus === "succeeded" && messages.length > 0 ? messages[0].channelName : channelId}
+				<h2 className="font-semibold text-white truncate">
+					<span className="text-slate-400 text-xl font-light mr-1">#</span>
+					{currentChannel?.name || channelId}
 				</h2>
 			</div>
 
-			<div className="flex-1 overflow-y-auto p-4 space-y-4">
+			<div className="flex-1 overflow-y-auto p-4 space-y-1">
 				{messagesStatus === "loading" && <div className="text-center text-slate-400">Loading messages...</div>}
 				{messagesStatus === "failed" && <div className="text-center text-red-400">Failed to load messages.</div>}
 				{messages.map((message) => {
@@ -201,6 +245,7 @@ function ChannelMessages() {
 							key={message.id}
 							className="relative group px-4 py-1.5 -mx-4 rounded-md hover:bg-slate-800/50 transition-colors"
 						>
+							{message.replyTo && <ReplyPreview replyTo={message.replyTo} />}
 							<div className="flex items-start space-x-4">
 								<div className="flex-shrink-0">
 									<img
@@ -305,7 +350,12 @@ function ChannelMessages() {
 				<div ref={messagesEndRef} />
 			</div>
 
-			<MessageInput channelId={channelId} replyingTo={replyingTo} setReplyingTo={setReplyingTo} />
+			<MessageInput
+				channelId={channelId}
+				replyingTo={replyingTo}
+				setReplyingTo={setReplyingTo}
+				currentChannel={currentChannel}
+			/>
 		</div>
 	);
 }
