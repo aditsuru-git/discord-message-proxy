@@ -37,8 +37,9 @@ export const setupDashboardHandlers = (client: Client, io: Server) => {
     console.log("Dashboard connected:", socket.id);
 
     // Handle dashboard requests
-    socket.on("fetchChannels", () =>
-      handlers.handleFetchChannels(client)(socket),
+    socket.on("fetchGuilds", () => handlers.handleFetchGuilds(client)(socket));
+    socket.on("fetchChannels", (payload) =>
+      handlers.handleFetchChannels(client)(socket, payload),
     );
     socket.on("fetchMessages", (payload) =>
       handlers.handleFetchMessages(client)(socket, payload),
@@ -48,11 +49,20 @@ export const setupDashboardHandlers = (client: Client, io: Server) => {
     socket.on("addReaction", (payload) =>
       controllers.handleAddReaction(client)(socket, payload),
     );
+    socket.on("removeReaction", (payload) =>
+      controllers.handleRemoveReaction(client)(socket, payload),
+    );
     socket.on("sendMessage", (payload) =>
       controllers.handleSendMessage(client)(socket, payload),
     );
     socket.on("replyMessage", (payload) =>
       controllers.handleReplyMessage(client)(socket, payload),
+    );
+    socket.on("editMessage", (payload) =>
+      controllers.handleEditMessage(client)(socket, payload),
+    );
+    socket.on("deleteMessage", (payload) =>
+      controllers.handleDeleteMessage(client)(socket, payload),
     );
 
     socket.on("disconnect", () => {

@@ -33,7 +33,8 @@ export const handleAddReaction = (client: Client) => {
       }
 
       await message.react(emoji);
-      socket.emit("reactionAdded", { channelId, messageId, emoji });
+      // 📝 Problem 2 Fix: Removed redundant socket.emit.
+      // The real-time update will now be handled by the messageReactionAdd event listener in client.ts.
     } catch (error) {
       console.error("Failed to add reaction:", error);
       socket.emit("addReactionError", "Failed to add reaction.");

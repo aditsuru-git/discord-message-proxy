@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+:root {
+	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+* {
+	box-sizing: border-box;
+	font-family: "Inter", sans-serif;
+}
+
+.debug {
+	border: 2px solid red;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #1e293b; /* slate-800 */
+}
+
+::-webkit-scrollbar-thumb {
+	background: #475569; /* slate-600 */
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #64748b; /* slate-500 */
+}
+
+/* Code block styling */
+pre {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+code {
+	font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+}
+
+/* Message content styling */
+.message-content {
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+	/* Hide guild picker on mobile */
+	.guild-picker {
+		display: none;
+	}
+
+	/* Collapse channel list on mobile */
+	.channel-list {
+		width: 200px;
+	}
+
+	/* Show mobile menu toggle */
+	.mobile-menu-toggle {
+		display: block;
+	}
+}
+
+@media (max-width: 640px) {
+	.channel-list {
+		position: fixed;
+		left: -240px;
+		transition: left 0.3s ease;
+		z-index: 50;
+		height: 100vh;
+	}
+
+	.channel-list.open {
+		left: 0;
+	}
+}
+
+/* Animation classes */
+.fade-in {
+	animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.slide-up {
+	animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
