@@ -4,7 +4,7 @@
 
 <div align="center">
   <p align="center">
-    <img src="./client/public/logo.png" alt="Logo" width="100" height="100">
+    <img src="./assets/logo.png" alt="Logo" width="100" height="100">
     <h3 align="center">Discord Message Proxy</h3>
     <p align="center">
       A self-hosted, real-time web dashboard for interacting with Discord channels through a bot.
@@ -117,7 +117,7 @@ You will need the following software and credentials before starting.
 Once the application is running, open your web browser to `http://localhost:3000`. The interface allows you to select a server (guild) from the left-most panel, choose a channel, and view/interact with messages in real-time.
 
 <div align="center">
-  <img src="./assets/usage.png" alt="Usage Screenshot" width="100%" style="max-width: 900px;">
+  <img src="./assets/demo.png" alt="Usage Screenshot" width="100%" style="max-width: 900px;">
 </div>
 
 ### Features
