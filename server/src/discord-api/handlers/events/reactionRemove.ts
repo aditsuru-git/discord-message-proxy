@@ -7,7 +7,6 @@ import {
 } from "discord.js";
 import { Server } from "socket.io";
 
-// Reaction remove event handler
 export const handleReactionRemove = (io: Server, client: Client) => {
   return async (
     reaction: MessageReaction | PartialMessageReaction,
@@ -20,9 +19,6 @@ export const handleReactionRemove = (io: Server, client: Client) => {
       if (user.partial) {
         await user.fetch();
       }
-
-      // Skip bot's own reactions
-      if (user.bot && user.id === client.user?.id) return;
 
       io.emit("reactionRemoved", {
         messageId: reaction.message.id,

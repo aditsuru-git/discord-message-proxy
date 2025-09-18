@@ -5,6 +5,7 @@ interface SimpleReaction {
   emoji: string;
   count: number;
   botReacted: boolean;
+  users: string[];
 }
 
 export interface SimpleMessage {
@@ -34,9 +35,6 @@ export const handleFetchMessages = (client: Client) => {
       const channel = client.channels.cache.get(channelId);
 
       if (!channel || !(channel instanceof TextChannel)) {
-        console.error(
-          `Channel with ID ${channelId} not found or is not a text channel.`,
-        );
         socket.emit(
           "messagesFetchedError",
           "Channel not found or is not a text channel.",
@@ -53,6 +51,7 @@ export const handleFetchMessages = (client: Client) => {
               emoji: reaction.emoji.name || "",
               count: reaction.count || 0,
               botReacted: reaction.users.cache.has(client.user!.id),
+              users: reaction.users.cache.map((u) => u.id), // Add this line
             }),
           );
 
